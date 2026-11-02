@@ -1,8 +1,8 @@
 # Olympiad Mentor
 
-*AI-powered math olympiad trainer for grades 5–6 with a non-spoiling AI tutor. Demo version: the interface and documentation are in Russian.*
+*AI-powered school olympiad trainer with a non-spoiling AI tutor. Currently math, grade 6; more grades and subjects planned. Demo version: the interface and documentation are in Russian.*
 
-Тренажёр олимпиадной математики для 5–6 классов с ИИ-наставником, который ведёт к решению и не выдаёт ответ сразу.
+Тренажёр для подготовки к школьным олимпиадам с ИИ-наставником, который ведёт к решению и не выдаёт ответ сразу. Сейчас это математика, 6 класс; другие классы и предметы в планах.
 
 Это витрина: код продукта и демо-набор из 44 задач, собственных и классических. Полный банк и инструменты аудита ведутся в приватном репозитории; на ноябрь 2026 там 707 задач с 3 вариантами у каждой, 800+ коммитов и 240+ PR.
 
