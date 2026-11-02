@@ -1,0 +1,45 @@
+---
+description: Именование веток, коммитов (вариант B) и merge
+alwaysApply: true
+---
+
+# Git: ветки, коммиты, merge
+
+## Коммиты — вариант B
+
+```
+feat(scope): …
+fix(scope): …
+test(scope): …
+docs: …
+docs(scope): …
+ci(scope): …
+chore(scope): …
+refactor(scope): …
+```
+
+Нельзя (кроме осознанного legacy): голые `feat:` / `fix:` **без** `(scope)` — кроме чистого `docs:`.
+
+Subject на русском OK; body — зачем.
+
+**Scopes (уточняются со стеком):** `web` · `api` · `auth` · `content` · `trainer` · `mentor` · `progress` · `agents` · при необходимости узкий.
+
+## Ветки (от актуального `main`)
+
+| Тип | Шаблон |
+|-----|--------|
+| Итерация | `feature/iter-{n}-{slug}` |
+| Прочее | `feature/{slug}` |
+| Hotfix | `fix/{slug}` |
+| Доки | `docs/{slug}` |
+
+## Push / merge
+
+- Только по явным «коммит» / «пуш» / «мерж».
+- `main` не трогать до явного merge эпика.
+- После merge — необходимая документация обновляется в том же PR.
+
+## Не коммитить
+
+`.env`, секреты, `dev.db`, `node_modules/`, `.venv/`, локальные `output*/`, кэши.  
+Корневой `package-lock.json` — по решению ARCHITECTURE (если monorepo иначе).

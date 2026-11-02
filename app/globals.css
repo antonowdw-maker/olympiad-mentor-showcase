@@ -1,0 +1,322 @@
+@import "tailwindcss";
+
+:root,
+html[data-theme="default"] {
+  --bg: #f3f0e8;
+  --bg-accent: #e7eef2;
+  --ink: #1c2430;
+  --muted: #5a6570;
+  --line: #c9d0d6;
+  --brand: #0f6a6a;
+  --brand-soft: #d5ecec;
+  --warn: #8a4b1f;
+  --ok: #1f6b45;
+  --ok-soft: #dceee4;
+  --badge-ring: #0f6a6a;
+  --badge-face: #d5ecec;
+  --surface: rgba(255, 255, 255, 0.6);
+}
+
+/*
+ * «Игровая» (arcade): flat cartoon GUI — градиентные CTA, мягкая тень, скругления.
+ * Вайб в духе Simple Game UI Pack (gradient buttons), без чужих ассетов/брендов.
+ * --brand достаточно насыщенный для text-white на кнопках.
+ */
+html[data-theme="arcade"] {
+  --bg: #6ec8ff;
+  --bg-accent: #b8f0ff;
+  --ink: #1e2a4a;
+  --muted: #4a5d82;
+  --line: #c4d4f0;
+  --brand: #ff4d8d;
+  --brand-soft: #ffe56a;
+  /* --ok/--warn идут текстом прямо по голубому градиенту — нужны тёмные тона (контраст ≥4.5:1) */
+  --warn: #a8480a;
+  --ok: #0a6b4b;
+  --ok-soft: #c6f7e4;
+  --badge-ring: #7b6cff;
+  --badge-face: #ffe56a;
+  --surface: rgba(255, 255, 255, 0.88);
+  --arcade-grad-a: #ff6b9d;
+  --arcade-grad-b: #ff8f4a;
+  --arcade-panel-glow: #e8f4ff;
+  --arcade-shadow: 0 6px 0 rgba(30, 42, 74, 0.18);
+  --arcade-btn-shadow: 0 5px 0 rgba(30, 42, 74, 0.22);
+}
+
+/* «Дорама» (ключ soft): тёплый blush / крем / розовое золото — вайб k-drama лендингов, не чужой бренд. */
+html[data-theme="soft"] {
+  --bg: #faf6f2;
+  --bg-accent: #f3e4ea;
+  --ink: #2c2428;
+  --muted: #7a6570;
+  --line: #e8d4dc;
+  --brand: #c45c7a;
+  --brand-soft: #f8e8ee;
+  --warn: #b07a4a;
+  --ok: #3f7362;
+  --ok-soft: #e4f0ea;
+  --badge-ring: #c45c7a;
+  --badge-face: #f8e8ee;
+  --surface: rgba(255, 252, 250, 0.9);
+}
+
+html[data-theme="soft"] body {
+  position: relative;
+  background:
+    radial-gradient(circle 180px at 12% 18%, rgba(255, 220, 200, 0.55) 0%, transparent 70%),
+    radial-gradient(circle 140px at 88% 12%, rgba(255, 180, 200, 0.35) 0%, transparent 65%),
+    radial-gradient(ellipse 70% 50% at 10% 0%, #f8d4e0 0%, transparent 55%),
+    radial-gradient(ellipse 55% 45% at 95% 15%, #efe0d0 0%, transparent 50%),
+    radial-gradient(ellipse 50% 40% at 50% 100%, #e8dce8 0%, transparent 55%),
+    linear-gradient(165deg, #faf6f2 0%, #f5ebe8 50%, #f0e4ec 100%);
+  font-family: Georgia, "Palatino Linotype", "Times New Roman", serif;
+}
+
+/* Лёгкая «плёнка» — без position:fixed (fixed + скролл даёт рябь на Windows). */
+html[data-theme="soft"] body::before {
+  content: "";
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  opacity: 0.06;
+  background-image:
+    radial-gradient(1px 1px at 20% 30%, #2c2428 50%, transparent 51%),
+    radial-gradient(1px 1px at 70% 40%, #2c2428 50%, transparent 51%),
+    radial-gradient(1px 1px at 40% 80%, #2c2428 50%, transparent 51%),
+    radial-gradient(1.5px 1.5px at 85% 70%, #2c2428 50%, transparent 51%);
+  background-size: 120px 120px, 160px 160px, 100px 100px, 140px 140px;
+}
+
+html[data-theme="soft"] header {
+  border-bottom: 1px solid var(--line);
+  background: color-mix(in srgb, var(--surface) 95%, #f8d4e0);
+  box-shadow: 0 8px 28px rgba(196, 92, 122, 0.08);
+}
+
+html[data-theme="soft"] header a {
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+html[data-theme="soft"] main .rounded-lg,
+html[data-theme="soft"] main .rounded-xl {
+  border-radius: 1rem;
+}
+
+html[data-theme="soft"] main [class*="border-[var(--line)]"] {
+  border-color: color-mix(in srgb, var(--line) 80%, #fff);
+  box-shadow: 0 10px 30px rgba(44, 36, 40, 0.06);
+}
+
+html[data-theme="soft"] main [class*="bg-[var(--brand)]"],
+html[data-theme="soft"] button[class*="bg-[var(--brand)]"],
+html[data-theme="soft"] a[class*="bg-[var(--brand)]"] {
+  background-image: linear-gradient(180deg, #d47894 0%, var(--brand) 100%) !important;
+  border-radius: 9999px;
+  box-shadow: 0 4px 14px rgba(196, 92, 122, 0.35);
+}
+
+html {
+  /* iter 15: не раздуваем страницу горизонтально на узких экранах */
+  overflow-x: clip;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  overflow-x: clip;
+  color: var(--ink);
+  background:
+    radial-gradient(1200px 600px at 10% -10%, var(--bg-accent), transparent 60%),
+    radial-gradient(900px 500px at 100% 0%, color-mix(in srgb, var(--brand) 16%, transparent), transparent 55%),
+    var(--bg);
+  font-family: "Segoe UI", "Trebuchet MS", sans-serif;
+}
+
+/* Игровая оболочка: мягкие пятна цвета, как в flat game UI packs */
+html[data-theme="arcade"] body {
+  background:
+    radial-gradient(ellipse 55% 40% at 12% 8%, #fff6b0 0%, transparent 55%),
+    radial-gradient(ellipse 50% 45% at 92% 12%, #ffb4d4 0%, transparent 50%),
+    radial-gradient(ellipse 60% 50% at 70% 85%, #a78bfa 0%, transparent 55%),
+    radial-gradient(ellipse 50% 40% at 10% 90%, #5eead4 0%, transparent 50%),
+    linear-gradient(165deg, #7dd3fc 0%, #6ec8ff 40%, #818cf8 100%);
+  font-family: "Trebuchet MS", "Segoe UI", sans-serif;
+}
+
+html[data-theme="arcade"] header {
+  border-bottom: 2px solid color-mix(in srgb, var(--line) 80%, #fff);
+  background: color-mix(in srgb, var(--surface) 90%, var(--arcade-panel-glow));
+  box-shadow: 0 8px 24px rgba(30, 42, 74, 0.12);
+  backdrop-filter: blur(8px);
+}
+
+html[data-theme="arcade"] header a {
+  font-weight: 700;
+  letter-spacing: 0.01em;
+}
+
+/* Скругления «капсула / soft card» */
+html[data-theme="arcade"] main .rounded-lg,
+html[data-theme="arcade"] main .rounded-xl,
+html[data-theme="arcade"] header .rounded-lg {
+  border-radius: 1.25rem;
+}
+
+html[data-theme="arcade"] main [class*="border-[var(--line)]"],
+html[data-theme="arcade"] header [class*="border-[var(--line)]"] {
+  border-width: 2px;
+  border-color: color-mix(in srgb, var(--line) 70%, #fff);
+  background-color: var(--surface);
+  box-shadow: var(--arcade-shadow);
+}
+
+/* CTA как gradient game-кнопки (flat + soft depth) */
+html[data-theme="arcade"] main [class*="bg-[var(--brand)]"],
+html[data-theme="arcade"] header [class*="bg-[var(--brand)]"],
+html[data-theme="arcade"] main a[class*="bg-[var(--brand)]"],
+html[data-theme="arcade"] button[class*="bg-[var(--brand)]"] {
+  background-image: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--arcade-grad-a) 88%, #fff) 0%,
+    var(--arcade-grad-a) 42%,
+    var(--arcade-grad-b) 100%
+  ) !important;
+  background-color: transparent !important;
+  border: 2px solid color-mix(in srgb, var(--ink) 25%, transparent);
+  border-radius: 9999px;
+  box-shadow: var(--arcade-btn-shadow);
+  text-shadow: 0 1px 0 rgba(30, 42, 74, 0.2);
+}
+
+html[data-theme="arcade"] main [class*="bg-[var(--brand)]"]:hover,
+html[data-theme="arcade"] button[class*="bg-[var(--brand)]"]:hover,
+html[data-theme="arcade"] main a[class*="bg-[var(--brand)]"]:hover {
+  filter: brightness(1.06);
+}
+
+html[data-theme="arcade"] main [class*="bg-[var(--brand-soft)]"],
+html[data-theme="arcade"] header [class*="bg-[var(--brand-soft)]"] {
+  background-image: linear-gradient(180deg, #fff3a8 0%, var(--brand-soft) 100%);
+  border: 2px solid color-mix(in srgb, var(--ink) 18%, transparent);
+  box-shadow: 0 4px 0 rgba(30, 42, 74, 0.12);
+}
+
+/*
+ * «Бравл» (brawl): thick stroke, золото/неон, glossy CTA.
+ * Реф. Figma kit HUD/компоненты/демо (семейный MVP).
+ */
+html[data-theme="brawl"] {
+  --bg: #1a3a7a;
+  --bg-accent: #3d7cff;
+  --ink: #fff8e7;
+  --muted: #c8d6f0;
+  --line: #0d1b33;
+  --brand: #ffcc00;
+  --brand-soft: #ff6b2c;
+  --warn: #ff4d6d;
+  --ok: #3dff4a;
+  --ok-soft: #1a5c22;
+  --badge-ring: #ffb020;
+  --badge-face: #ffe566;
+  --surface: rgba(18, 40, 90, 0.88);
+  --brawl-panel: #243f8a;
+  --brawl-stroke: #0d1b33;
+  --brawl-gold: #ffcc00;
+  --brawl-orange: #ff7a18;
+}
+
+html[data-theme="brawl"] body {
+  background:
+    radial-gradient(ellipse 50% 35% at 20% 0%, #5a9cff 0%, transparent 55%),
+    radial-gradient(ellipse 45% 40% at 90% 10%, #ff6b9d 0%, transparent 50%),
+    radial-gradient(ellipse 60% 45% at 50% 100%, #2a6a3a 0%, transparent 55%),
+    linear-gradient(180deg, #2a5ccc 0%, #1a3a7a 55%, #0f2858 100%);
+  font-family: "Trebuchet MS", "Segoe UI", sans-serif;
+  font-weight: 600;
+}
+
+html[data-theme="brawl"] header {
+  border-bottom: 4px solid var(--brawl-stroke);
+  background: linear-gradient(180deg, #3a5fb8 0%, #243f8a 100%);
+  box-shadow: 0 4px 0 var(--brawl-stroke);
+}
+
+html[data-theme="brawl"] header a {
+  font-weight: 800;
+  color: var(--brawl-gold);
+  text-shadow: 0 2px 0 var(--brawl-stroke);
+}
+
+html[data-theme="brawl"] main .rounded-lg,
+html[data-theme="brawl"] main .rounded-xl,
+html[data-theme="brawl"] header .rounded-lg {
+  border-radius: 0.85rem;
+}
+
+html[data-theme="brawl"] main [class*="border-[var(--line)]"],
+html[data-theme="brawl"] header [class*="border-[var(--line)]"] {
+  border-width: 3px;
+  border-color: var(--brawl-stroke);
+  background: color-mix(in srgb, var(--brawl-panel) 92%, #fff);
+  box-shadow: 0 4px 0 var(--brawl-stroke);
+  color: #fff8e7;
+}
+
+html[data-theme="brawl"] main [class*="bg-[var(--brand)]"],
+html[data-theme="brawl"] header [class*="bg-[var(--brand)]"],
+html[data-theme="brawl"] main a[class*="bg-[var(--brand)]"],
+html[data-theme="brawl"] button[class*="bg-[var(--brand)]"] {
+  background-image: linear-gradient(180deg, #ffe566 0%, var(--brawl-gold) 45%, var(--brawl-orange) 100%) !important;
+  background-color: transparent !important;
+  color: #1a0a12 !important;
+  border: 3px solid var(--brawl-stroke);
+  border-radius: 0.75rem;
+  box-shadow: 0 4px 0 var(--brawl-stroke);
+  font-weight: 800;
+  text-shadow: none;
+}
+
+html[data-theme="brawl"] main [class*="bg-[var(--brand)]"]:hover,
+html[data-theme="brawl"] button[class*="bg-[var(--brand)]"]:hover {
+  filter: brightness(1.08);
+}
+
+html[data-theme="brawl"] a {
+  color: var(--brawl-gold);
+}
+
+html[data-theme="brawl"] a:hover {
+  color: #fff3a0;
+}
+
+
+a {
+  color: var(--brand);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+}
+
+a:hover {
+  color: color-mix(in srgb, var(--brand) 78%, var(--ink));
+}
+
+html[data-theme="arcade"] a:hover {
+  color: color-mix(in srgb, var(--brand) 55%, #fff);
+}
+
+/* Залитые CTA (bg + text-white): глобальный color ссылок не должен красить подпись */
+a[class*="text-white"] {
+  color: #fff;
+}
+
+a[class*="text-white"]:hover {
+  color: #fff;
+}
+
+/* Явный цвет на ссылке-карточке перекрывает глобальный a { color: brand } */
+a[class*="text-[var(--ink)]"] {
+  color: var(--ink);
+}

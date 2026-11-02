@@ -1,0 +1,20 @@
+{
+  "files.exclude": {
+    "tmp-*": true,
+    "tmp-*/**": true,
+    "**/tmp-*": true,
+    "**/tmp-*/**": true
+  },
+  "search.exclude": {
+    "tmp-*": true,
+    "**/tmp-*/**": true
+  },
+  "files.watcherExclude": {
+    "**/tmp-*": true,
+    "**/tmp-*/**": true
+  },
+  "typescript.tsserver.experimental.enableProjectDiagnostics": false,
+  "typescript.tsserver.watchOptions": {
+    "excludeDirectories": ["**/tmp-*", "**/node_modules", "**/.git", "**/.next"]
+  }
+}

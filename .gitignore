@@ -1,0 +1,40 @@
+# Secrets & env
+.env
+.env.*
+!.env.example
+
+# Dependencies & caches
+node_modules/
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+coverage/
+htmlcov/
+.turbo/
+.next/
+dist/
+build/
+*.tsbuildinfo
+
+# Local DBs & artifacts
+*.db
+dev.db
+backups/
+output/
+output_*/
+.DS_Store
+Thumbs.db
+
+# Временное: логи, выгрузки
+tmp-*
+
+# IDE
+.idea/
+*.swp
+
+# Черновики изоморфов 12b (локальный review; fixtures в git ок)
+content/drafts/*.instances.json
+!content/drafts/fixtures/

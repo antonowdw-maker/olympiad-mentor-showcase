@@ -1,0 +1,321 @@
+// Схема домена MVP: контент T1 + User / Attempt (iter 3).
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id             String             @id @default(cuid())
+  login          String             @unique
+  passwordHash   String
+  displayName    String?
+  /// Накопленный XP (L1 / iter 11)
+  totalXp        Int                @default(0)
+  /// Пресет оформления UI (iter 15b): default | arcade | soft
+  uiTheme        String             @default("default")
+  attempts       Attempt[]
+  hintProgress   TaskHintProgress[]
+  mentorSessions MentorSession[]
+  taskReveals    TaskReveal[]
+  instanceReveals TaskInstanceReveal[]
+  dayPlanPackages DayPlanPackage[]
+  badges         UserBadge[]
+  taskXpAwards   TaskXpAward[]
+  instanceShows  UserTaskInstanceShow[]
+  reinforceSessions ReinforceSession[]
+  createdAt      DateTime           @default(now())
+  updatedAt      DateTime           @updatedAt
+}
+
+/// Факт начисления XP за задачу (L1): идемпотентность по @@unique([userId, taskId]).
+model TaskXpAward {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  taskId    String
+  task      Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  /// Сколько XP записали при создании факта (снимок грейда на момент award).
+  xpAmount  Int
+  createdAt DateTime @default(now())
+
+  @@unique([userId, taskId])
+  @@index([userId])
+}
+
+/// Бейджи L1: milestone (debut/steady/deep) и technique:<topicSlug>
+/// Необратимы в MVP: backfill только upsert, orphan-коды не удаляет.
+model UserBadge {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  code      String
+  title     String
+  earnedAt  DateTime @default(now())
+
+  @@unique([userId, code])
+  @@index([userId])
+}
+
+model Topic {
+  id             String          @id @default(cuid())
+  slug           String          @unique
+  title          String
+  description    String
+  order          Int             @default(0)
+  /// JSON-массив меток уровней, напр. ["5","5-6","6"]
+  classLevels    String
+  articles       DocArticle[]
+  tasks          Task[]
+  mentorSessions MentorSession[]
+  dayPlanPackages DayPlanPackage[]
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+}
+
+model DocArticle {
+  id        String   @id @default(cuid())
+  slug      String   @unique
+  topicId   String
+  topic     Topic    @relation(fields: [topicId], references: [id], onDelete: Cascade)
+  title     String
+  body      String
+  order     Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Task {
+  id        String    @id @default(cuid())
+  slug      String    @unique
+  topicId   String
+  topic     Topic     @relation(fields: [topicId], references: [id], onDelete: Cascade)
+  title     String
+  statement String
+  /// JSON: string[] — эталоны; только server-side
+  acceptedAnswers String
+  answerType String
+  options   String?
+  difficulty String
+  /// Олимпиадный грейд: low | mid | high (не путать с difficulty класса)
+  grade      String  @default("mid")
+  order      Int     @default(0)
+  relatedDocSlugs String
+  hintSteps  String
+  similarTaskSlug String?
+  workedExample   String?
+  /// Источник идей (MathUs / original…); не в публичном DTO ученика
+  sourceHint String?
+  attempts       Attempt[]
+  hintProgress   TaskHintProgress[]
+  mentorSessions MentorSession[]
+  reveals        TaskReveal[]
+  xpAwards       TaskXpAward[]
+  instances      TaskInstance[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+/// Изоморфный экземпляр канонической Task (iter 12a). Те же приём/грейд, другие данные.
+model TaskInstance {
+  id              String   @id @default(cuid())
+  taskId          String
+  task            Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  /// Стабильный slug вида «{taskSlug}__i1»
+  slug            String   @unique
+  order           Int      @default(0)
+  /// Своё название варианта (числа в условии другие); null — показываем Task.title
+  title           String?
+  statement       String
+  acceptedAnswers String
+  options         String?
+  hintSteps       String
+  shows           UserTaskInstanceShow[]
+  attempts        Attempt[]
+  reveals         TaskInstanceReveal[]
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([taskId, order])
+}
+
+/// Показ instance ученику (анти-повтор + цикл при исчерпании пула).
+model UserTaskInstanceShow {
+  id             String       @id @default(cuid())
+  userId         String
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  taskInstanceId String
+  taskInstance   TaskInstance @relation(fields: [taskInstanceId], references: [id], onDelete: Cascade)
+  /// Ступени подсказки по этому instance (12a).
+  openedCount    Int          @default(0)
+  /// true = попали сюда кнопкой «Другой вариант» (P-VARIANT-ONCE: дизейбл до верного).
+  enteredViaOtherVariant Boolean @default(false)
+  shownAt        DateTime     @default(now())
+
+  @@unique([userId, taskInstanceId])
+  @@index([userId])
+}
+
+/// Сколько ступеней подсказки открыто у user×task (сервер; W-03 / iter 4).
+model TaskHintProgress {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  taskId      String
+  task        Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  openedCount Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([userId, taskId])
+  @@index([userId])
+}
+
+model Attempt {
+  id                String   @id @default(cuid())
+  userId            String
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  taskId            String
+  task              Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  /// Instance, с которым сверяли ответ (null — старые Attempt / задачи без пула).
+  taskInstanceId    String?
+  taskInstance      TaskInstance? @relation(fields: [taskInstanceId], references: [id], onDelete: SetNull)
+  submittedAnswer   String
+  isCorrect         Boolean
+  hintsOpenedCount  Int      @default(0)
+  solutionRevealed  Boolean  @default(false)
+  createdAt         DateTime @default(now())
+
+  @@index([userId, taskId])
+  @@index([userId, taskInstanceId])
+}
+
+/// Явный reveal эталона по кнопке A для задач без пула (INV-07); не доверяем клиенту.
+model TaskReveal {
+  id         String   @id @default(cuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  taskId     String
+  task       Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  createdAt  DateTime @default(now())
+
+  @@unique([userId, taskId])
+  @@index([userId])
+}
+
+/// Reveal эталона текущего instance (I12A-01): не распространяется на другие изоморфы.
+model TaskInstanceReveal {
+  id             String       @id @default(cuid())
+  userId         String
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  taskInstanceId String
+  taskInstance   TaskInstance @relation(fields: [taskInstanceId], references: [id], onDelete: Cascade)
+  createdAt      DateTime     @default(now())
+
+  @@unique([userId, taskInstanceId])
+  @@index([userId])
+}
+
+/// Чат наставника (iter 5): одна сессия на user×task (или user×topic).
+model MentorSession {
+  id        String          @id @default(cuid())
+  userId    String
+  user      User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  taskId    String?
+  task      Task?           @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  topicId   String?
+  topic     Topic?          @relation(fields: [topicId], references: [id], onDelete: Cascade)
+  /// Стабильный ключ области: `task:<taskId>` | `topic:<topicId>` (BC-02).
+  /// Upgrade: `npm run db:backfill-mentor-scope` → `npx prisma db push`.
+  scopeKey  String          @default("")
+  messages  MentorMessage[]
+  createdAt DateTime        @default(now())
+  updatedAt DateTime        @updatedAt
+
+  @@unique([userId, scopeKey])
+  @@index([userId, topicId])
+}
+
+model MentorMessage {
+  id        String        @id @default(cuid())
+  sessionId String
+  session   MentorSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  /// user | assistant
+  role      String
+  body      String
+  /// user | llm | fallback — для роли user пишем "user" (I5-06)
+  mode      String
+  createdAt DateTime      @default(now())
+
+  @@index([sessionId])
+}
+
+/// Пакет «что сегодня» (iter 6): история всех пакетов за календарный день.
+model DayPlanPackage {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  /// Якорная тема (для mixed — первая из открытых на момент создания).
+  /// MVP: темы банка не удаляем — cascade по topicId снёс бы всю mixed-историю (10C-08).
+  topicId   String
+  topic     Topic    @relation(fields: [topicId], references: [id], onDelete: Cascade)
+  /// Ключ области: `topic:<slug>`, `mixed` (iter 10c) или `gather` (ручной сбор, iter 13A).
+  /// Upgrade со старой БД: сначала `npm run db:backfill-plan-scope`, потом `prisma db push`
+  /// (иначе unique по пустому scopeKey конфликтует при одинаковом seq у разных тем).
+  scopeKey  String   @default("")
+  /// YYYY-MM-DD (Europe/Moscow)
+  date      String
+  /// Порядковый номер пакета в этот день (1…)
+  seq       Int
+  /// JSON: PlanItem[]
+  items     String
+  /// normal | theme_closed | caught_up
+  status    String   @default("normal")
+  createdAt DateTime @default(now())
+  reinforceSessions ReinforceSession[]
+
+  @@unique([userId, scopeKey, date, seq])
+  @@index([userId, date])
+  @@index([userId, topicId, date])
+}
+
+/// Сессия закрепления / теста по пройденному учебному пакету (iter 13B/C).
+model ReinforceSession {
+  id               String                 @id @default(cuid())
+  userId           String
+  user             User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  sourcePackageId  String
+  sourcePackage    DayPlanPackage         @relation(fields: [sourcePackageId], references: [id], onDelete: Cascade)
+  /// active | completed | skipped
+  status           String                 @default("active")
+  /// Когда выдали XP / бейдж за сданный тест (идемпотентность).
+  rewardGrantedAt  DateTime?
+  /// Wall-clock секунды от входа (createdAt) до ответа на все вопросы (P-TIMER).
+  durationSec      Int?
+  items            ReinforceSessionItem[]
+  createdAt        DateTime               @default(now())
+  completedAt      DateTime?
+
+  @@unique([userId, sourcePackageId])
+  @@index([userId])
+}
+
+model ReinforceSessionItem {
+  id             String           @id @default(cuid())
+  sessionId      String
+  session        ReinforceSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  taskId         String
+  taskInstanceId String
+  /// Порядок вопроса в тесте (0…)
+  ord            Int
+  answeredAt     DateTime?
+  attemptId      String?
+  isCorrect      Boolean?
+
+  @@unique([sessionId, taskId])
+  @@unique([sessionId, taskInstanceId])
+  @@index([sessionId, ord])
+}
